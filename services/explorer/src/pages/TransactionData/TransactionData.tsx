@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Divider,
   Paper,
   Typography,
   CopyTo,
+  ToggleButton,
 } from '@taraxa_project/taraxa-ui';
 import { useParams } from 'react-router-dom';
 import {
@@ -27,9 +28,12 @@ import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import LoadingSkeletonTx, { DecodedLoadingSkeleton } from './LoadingSkeletonTx';
 import TransactionDataTabs from './TransactionDataTabs';
 import { CallData } from '../../models';
+import useStyles from './TransactionData.styles';
+import { ethers } from 'ethers';
 
 const TransactionDataContainer = (): JSX.Element => {
   const { txHash } = useParams();
+  const classes = useStyles();
   const {
     transactionData,
     decodedTxData,
@@ -40,6 +44,24 @@ const TransactionDataContainer = (): JSX.Element => {
     showNetworkChanged,
   } = useTransactionDataContainerEffects(txHash);
   const onCopy = useCopyToClipboard();
+
+  const [switchValue, setSwitchValue] = useState<string>('Dec');
+  const [hexValue, setHexValue] = useState(transactionData?.value);
+
+  const switchOptions = [
+    { value: 'Dec', label: 'Dec' },
+    { value: 'Hex', label: 'Hex' },
+  ];
+
+  const onSwitch = (event: React.MouseEvent<HTMLElement>, value: string) => {
+    const options = switchOptions.map((switchOption) => switchOption.value);
+    const parsedValue = parseFloat(transactionData?.value.toString());
+    const hexValue = ethers.utils.hexlify(parsedValue).toString();
+    setHexValue(hexValue);
+    if (options.includes(value)) {
+      setSwitchValue(value);
+    }
+  };
 
   const callData = decodedTxData?.data?.calldata as CallData;
   return (
@@ -137,7 +159,20 @@ const TransactionDataContainer = (): JSX.Element => {
                 data={`${getTransactionType(transactionData)}`}
               />
               {transactionData?.value && (
-                <DataRow title='Value' data={`${transactionData.value}`} />
+                <div className={classes.valueRowContainer}>
+                  <DataRow
+                    title='Value'
+                    data={`${
+                      switchValue === 'Dec' ? transactionData?.value : hexValue
+                    }`}
+                  />
+                  <ToggleButton
+                    exclusive
+                    onChange={onSwitch}
+                    currentValue={switchValue}
+                    data={switchOptions}
+                  />
+                </div>
               )}
               {transactionData?.from &&
                 (transactionData?.to ||

@@ -10,6 +10,11 @@ const useStyles = makeStyles(
         alignItems: 'center',
         marginRight: theme.spacing(1),
       },
+      valueRowContainer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      },
     };
   },
   { name: 'TransactionData' }
